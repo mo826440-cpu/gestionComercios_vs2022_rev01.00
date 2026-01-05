@@ -51,5 +51,23 @@ async function onFetch(event) {
         cachedResponse = await cache.match(request);
     }
 
-    return cachedResponse || fetch(event.request);
+    // Si hay una respuesta en cache, usarla
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+
+    // Si no hay cache, hacer fetch con redirect: 'follow' para manejar redirects correctamente
+    try {
+        return await fetch(event.request, { redirect: 'follow' });
+    } catch (error) {
+        // Si el fetch falla (por ejemplo, sin conexión), intentar devolver index.html para navegación
+        if (event.request.mode === 'navigate') {
+            const cache = await caches.open(cacheName);
+            const fallback = await cache.match('index.html');
+            if (fallback) {
+                return fallback;
+            }
+        }
+        throw error;
+    }
 }
