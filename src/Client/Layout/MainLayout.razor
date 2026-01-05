@@ -5,11 +5,11 @@
 @inject INetworkService NetworkService
 @inject ISyncManagerService SyncManagerService
 
-<NetworkStatus />
-<SyncStatus />
-
 @if (isAuthenticated)
 {
+    <NetworkStatus />
+    <SyncStatus />
+    
     <div class="page">
         <div class="sidebar">
             <NavMenu />
