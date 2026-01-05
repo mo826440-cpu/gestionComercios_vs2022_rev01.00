@@ -1,0 +1,39 @@
+@using Shared.Services
+
+<Modal Show="@Show" Title="@Title" ShowFooter="true" OnClose="HandleClose">
+    <Body>
+        <p>@Message</p>
+    </Body>
+    <Footer>
+        <button type="button" class="btn btn-secondary" @onclick="HandleCancel">Cancelar</button>
+        <button type="button" class="btn btn-@ConfirmButtonType.ToString().ToLower()" @onclick="HandleConfirm">@ConfirmButtonText</button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter] public bool Show { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Confirmar";
+    [Parameter] public string Message { get; set; } = "¿Estás seguro?";
+    [Parameter] public string ConfirmButtonText { get; set; } = "Confirmar";
+    [Parameter] public AlertType ConfirmButtonType { get; set; } = AlertType.Danger;
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleConfirm()
+    {
+        Show = false;
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task HandleCancel()
+    {
+        Show = false;
+        await OnCancel.InvokeAsync();
+    }
+
+    private async Task HandleClose()
+    {
+        await HandleCancel();
+    }
+}
+

@@ -1,0 +1,123 @@
+@using Client.Services
+@using Shared.Services
+@inject ISyncManagerService SyncManagerService
+@inject INetworkService NetworkService
+@inject IToastService ToastService
+@inject IAuthService AuthService
+@implements IDisposable
+
+@if (pendingCount > 0 || isSyncing)
+{
+    <div class="sync-status-bar bg-light border-bottom px-4 py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                @if (isSyncing)
+                {
+                    <span class="text-info">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Sincronizando datos...
+                    </span>
+                }
+                else if (pendingCount > 0)
+                {
+                    <span class="text-warning">
+                        ⚠️ @pendingCount item(s) pendiente(s) de sincronización
+                    </span>
+                }
+            </div>
+            <div>
+                @if (!NetworkService.IsOnline)
+                {
+                    <span class="text-muted small">Sin conexión</span>
+                }
+                else if (pendingCount > 0 && !isSyncing)
+                {
+                    <button class="btn btn-sm btn-primary" @onclick="SyncNow" disabled="@isSyncing">
+                        Sincronizar ahora
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private int pendingCount = 0;
+    private bool isSyncing = false;
+    private Guid? comercioId = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        NetworkService.OnConnectionChanged += OnConnectionChanged;
+        await LoadPendingCount();
+    }
+
+    private async void OnConnectionChanged(bool isOnline)
+    {
+        if (isOnline && pendingCount > 0 && comercioId.HasValue)
+        {
+            // Auto-sincronizar cuando vuelve la conexión
+            await SyncNow();
+        }
+        await InvokeAsync(async () =>
+        {
+            await LoadPendingCount();
+            StateHasChanged();
+        });
+    }
+
+    private async Task LoadPendingCount()
+    {
+        try
+        {
+            if (comercioId == null)
+            {
+                // Intentar obtener comercioId del usuario
+                var user = await AuthService.GetCurrentUserAsync();
+                if (user != null)
+                {
+                    // TODO: Obtener comercioId del usuario desde la base de datos
+                    // Por ahora dejamos null
+                }
+            }
+
+            if (comercioId.HasValue)
+            {
+                pendingCount = await SyncManagerService.GetTotalPendingCountAsync(comercioId.Value);
+            }
+        }
+        catch
+        {
+            pendingCount = 0;
+        }
+    }
+
+    private async Task SyncNow()
+    {
+        if (isSyncing || !NetworkService.IsOnline || comercioId == null) return;
+
+        isSyncing = true;
+        StateHasChanged();
+
+        try
+        {
+            await SyncManagerService.SyncAllPendingAsync(comercioId.Value);
+            await LoadPendingCount();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error al sincronizar: {ex.Message}");
+        }
+        finally
+        {
+            isSyncing = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        NetworkService.OnConnectionChanged -= OnConnectionChanged;
+    }
+}
+

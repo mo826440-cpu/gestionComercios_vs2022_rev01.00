@@ -1,0 +1,35 @@
+@if (Show)
+{
+    <div class="loading-spinner-container">
+        <div class="spinner-border @SpinnerClass" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="mt-2">@Message</div>
+        }
+    </div>
+}
+
+<style>
+    .loading-spinner-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.25em;
+    }
+</style>
+
+@code {
+    [Parameter] public bool Show { get; set; } = true;
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string SpinnerClass { get; set; } = "text-primary";
+}
+

@@ -1,0 +1,63 @@
+﻿@inherits LayoutComponentBase
+@using Shared.Services
+@using Client.Services
+@inject IAuthService AuthService
+@inject INetworkService NetworkService
+@inject ISyncManagerService SyncManagerService
+
+<NetworkStatus />
+<SyncStatus />
+
+@if (isAuthenticated)
+{
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+
+        <main>
+            <div class="top-row px-4">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <span>Bienvenido</span>
+                    <div>
+                        <span class="text-muted me-3">@userEmail</span>
+                    </div>
+                </div>
+            </div>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+else
+{
+    <div class="page">
+        <main>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+<ToastNotification />
+
+@code {
+    private string userEmail = string.Empty;
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (isAuthenticated)
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            userEmail = user?.Email ?? string.Empty;
+
+            // Inicializar servicios de sincronización
+            await SyncManagerService.InitializeAsync();
+        }
+        StateHasChanged();
+    }
+}

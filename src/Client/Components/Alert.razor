@@ -1,0 +1,30 @@
+@if (Show)
+{
+    <div class="alert alert-@AlertType.ToString().ToLower() alert-dismissible fade show" role="alert">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <h5 class="alert-heading">@Title</h5>
+        }
+        @Message
+        @if (Dismissible)
+        {
+            <button type="button" class="btn-close" @onclick="Dismiss" aria-label="Cerrar"></button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; } = true;
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public AlertType AlertType { get; set; } = AlertType.Info;
+    [Parameter] public bool Dismissible { get; set; } = false;
+    [Parameter] public EventCallback OnDismissed { get; set; }
+
+    private void Dismiss()
+    {
+        Show = false;
+        OnDismissed.InvokeAsync();
+    }
+}
+

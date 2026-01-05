@@ -1,0 +1,69 @@
+@using Client.Services
+@inject IToastService ToastService
+@implements IDisposable
+
+@if (notifications.Any())
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11;">
+        @foreach (var notification in notifications)
+        {
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-@notification.Type.ToString().ToLower() text-white">
+                    <strong class="me-auto">@notification.Title</strong>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => RemoveNotification(notification.Id)" aria-label="Cerrar"></button>
+                </div>
+                <div class="toast-body">
+                    @notification.Message
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ToastNotificationItem> notifications = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += HandleToastShow;
+    }
+
+    private void HandleToastShow(string message, AlertType type, string title)
+    {
+        var notification = new ToastNotificationItem
+        {
+            Id = Guid.NewGuid(),
+            Message = message,
+            Title = title,
+            Type = type
+        };
+
+        notifications.Add(notification);
+        StateHasChanged();
+
+        // Auto-remover después de 5 segundos
+        Task.Delay(5000).ContinueWith(_ =>
+        {
+            RemoveNotification(notification.Id);
+        });
+    }
+
+    private void RemoveNotification(Guid id)
+    {
+        notifications.RemoveAll(n => n.Id == id);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= HandleToastShow;
+    }
+
+    private class ToastNotificationItem
+    {
+        public Guid Id { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public AlertType Type { get; set; }
+    }
+}

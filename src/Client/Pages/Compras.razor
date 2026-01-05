@@ -1,0 +1,96 @@
+@page "/compras"
+@using Shared.Models
+@using Shared.Services
+@inject ICompraService CompraService
+@inject NavigationManager Navigation
+
+<PageTitle>Compras</PageTitle>
+
+<h1>Gestión de Compras</h1>
+
+<div class="mt-3 mb-3">
+    <button class="btn btn-primary" @onclick="NuevaCompra">Nueva Compra</button>
+</div>
+
+@if (isLoading)
+{
+    <p>Cargando compras...</p>
+}
+else if (compras.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Descuento</th>
+                <th>N° Factura</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var compra in compras)
+            {
+                <tr>
+                    <td>@compra.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@compra.Total.ToString("C")</td>
+                    <td>@(compra.Descuento?.ToString("C") ?? "-")</td>
+                    <td>@compra.NumeroFactura</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(compra.Id)">Ver Detalle</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        No hay compras registradas. <button class="btn btn-link p-0" @onclick="NuevaCompra">Crear la primera</button>
+    </div>
+}
+
+@code {
+    private List<Compra> compras = new();
+    private bool isLoading = true;
+    private Guid comercioId = Guid.Empty; // TODO: Obtener del usuario autenticado
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCompras();
+    }
+
+    private async Task CargarCompras()
+    {
+        isLoading = true;
+        try
+        {
+            // TODO: Obtener comercioId del usuario autenticado
+            if (comercioId != Guid.Empty)
+            {
+                compras = await CompraService.GetAllAsync(comercioId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Mostrar error al usuario
+            Console.WriteLine($"Error al cargar compras: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NuevaCompra()
+    {
+        Navigation.NavigateTo("/compras/nueva");
+    }
+
+    private void VerDetalle(Guid id)
+    {
+        Navigation.NavigateTo($"/compras/{id}");
+    }
+}
+

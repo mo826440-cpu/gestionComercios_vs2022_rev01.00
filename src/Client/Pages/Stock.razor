@@ -1,0 +1,95 @@
+@page "/stock"
+@using Shared.Models
+@using Shared.Services
+@inject IStockService StockService
+@inject NavigationManager Navigation
+
+<PageTitle>Stock</PageTitle>
+
+<h1>Gestión de Stock</h1>
+
+@if (isLoading)
+{
+    <p>Cargando stock...</p>
+}
+else if (stockItems.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Producto ID</th>
+                <th>Cantidad</th>
+                <th>Cantidad Mínima</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in stockItems)
+            {
+                <tr>
+                    <td>@item.ProductoId</td> @* TODO: Mostrar nombre del producto *@
+                    <td>@item.Cantidad</td>
+                    <td>@(item.CantidadMinima?.ToString() ?? "-")</td>
+                    <td>
+                        @if (item.CantidadMinima.HasValue && item.Cantidad <= item.CantidadMinima.Value)
+                        {
+                            <span class="badge bg-warning">Stock Bajo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Normal</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AjustarStock(item.Id)">Ajustar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        No hay productos con stock registrado.
+    </div>
+}
+
+@code {
+    private List<Shared.Models.Stock> stockItems = new();
+    private bool isLoading = true;
+    private Guid comercioId = Guid.Empty; // TODO: Obtener del usuario autenticado
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarStock();
+    }
+
+    private async Task CargarStock()
+    {
+        isLoading = true;
+        try
+        {
+            // TODO: Obtener comercioId del usuario autenticado
+            if (comercioId != Guid.Empty)
+            {
+                stockItems = await StockService.GetAllAsync(comercioId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Mostrar error al usuario
+            Console.WriteLine($"Error al cargar stock: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AjustarStock(Guid id)
+    {
+        Navigation.NavigateTo($"/stock/{id}/ajustar");
+    }
+}

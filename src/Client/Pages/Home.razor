@@ -1,0 +1,64 @@
+﻿@page "/"
+@inject Shared.Services.ISupabaseService SupabaseService
+
+<PageTitle>Home</PageTitle>
+
+<h1>Test de Conexión con Supabase</h1>
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div style="color: red;">
+        <h3>Error:</h3>
+        <p>@_errorMessage</p>
+    </div>
+}
+else if (_isConnected)
+{
+    <div style="color: green;">
+        <h3>✅ Conexión exitosa!</h3>
+        <p>El cliente de Supabase se inicializó correctamente.</p>
+        <p><strong>URL configurada:</strong> https://jnplnwpofxzfqchkvgpv.supabase.co</p>
+        <p>El servicio está funcionando correctamente. Puedes continuar con el desarrollo.</p>
+    </div>
+}
+else
+{
+    <p>Presiona el botón para probar la conexión</p>
+    <button class="btn btn-primary" @onclick="TestConnection">Probar Conexión</button>
+}
+
+@code {
+    private bool _isLoading = false;
+    private bool _isConnected = false;
+    private string? _errorMessage;
+
+    private void TestConnection()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _isConnected = false;
+
+        try
+        {
+            // Intentar obtener el cliente de Supabase
+            // Si el servicio está inyectado correctamente, esto debería funcionar
+            var client = SupabaseService.Client;
+
+            // Si llegamos aquí, el cliente se inicializó correctamente
+            _isConnected = client != null;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error al conectar: {ex.Message}";
+            _isConnected = false;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

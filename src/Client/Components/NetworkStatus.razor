@@ -1,0 +1,35 @@
+@using Client.Services
+@inject INetworkService NetworkService
+@implements IDisposable
+
+@if (!NetworkService.IsOnline)
+{
+    <div class="alert alert-warning alert-dismissible fade show mb-0" role="alert" style="border-radius: 0;">
+        <strong>⚠️ Sin conexión:</strong> Estás trabajando en modo offline. Los cambios se sincronizarán cuando se restaure la conexión.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        NetworkService.OnConnectionChanged += HandleConnectionChanged;
+        await NetworkService.InitializeAsync();
+        await NetworkService.IsOnlineAsync();
+        StateHasChanged();
+    }
+
+    private void HandleConnectionChanged(bool isOnline)
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        NetworkService.OnConnectionChanged -= HandleConnectionChanged;
+    }
+}
+

@@ -1,0 +1,111 @@
+﻿@using Shared.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Gestión Comercios</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="productos">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Productos
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="categorias">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categorías
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="marcas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Marcas
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="stock">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Stock
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="clientes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Clientes
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="proveedores">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proveedores
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="ventas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Ventas
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="compras">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Compras
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="cajas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Cajas
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="usuarios">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Usuarios
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="reportes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Reportes
+            </NavLink>
+        </div>
+        
+        <div class="nav-item px-3 mt-auto">
+            <button class="nav-link btn btn-link text-start p-0" @onclick="HandleLogout">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Cerrar Sesión
+            </button>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.SignOutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}
