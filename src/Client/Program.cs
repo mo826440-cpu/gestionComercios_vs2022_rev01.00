@@ -35,6 +35,7 @@ builder.Services.AddScoped<ICalculationService, CalculationService>();
 
 // Configurar servicios del cliente
 builder.Services.AddScoped<IToastService, ToastService>();
+builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddSingleton<INetworkService, NetworkService>();
 builder.Services.AddScoped<IIndexedDbService, IndexedDbService>();
 builder.Services.AddScoped<IOfflineStorageService, OfflineStorageService>();

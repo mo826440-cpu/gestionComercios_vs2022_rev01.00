@@ -1,15 +1,49 @@
 @page "/usuarios"
 @using Shared.Models
+@using Shared.Services
+@using Client.Services
+@inject IUserContextService UserContextService
+@inject IAuthorizationService AuthorizationService
+@inject NavigationManager Navigation
 
 <PageTitle>Usuarios</PageTitle>
 
-<h1>Gestión de Usuarios</h1>
+@if (!isAuthorized)
+{
+    <div class="alert alert-warning">
+        <h4>Acceso Restringido</h4>
+        <p>No tienes permisos para acceder a esta sección. Solo los administradores pueden gestionar usuarios.</p>
+        <button class="btn btn-primary" @onclick="VolverAlDashboard">Volver al Dashboard</button>
+    </div>
+}
+else
+{
+    <h1>Gestión de Usuarios</h1>
 
-<div class="mt-3 mb-3">
-    <button class="btn btn-primary">Nuevo Usuario</button>
-</div>
+    <div class="mt-3 mb-3">
+        <button class="btn btn-primary">Nuevo Usuario</button>
+    </div>
 
-<div class="alert alert-info">
-    Página en desarrollo. Próximamente se implementará la gestión completa de usuarios.
-</div>
+    <div class="alert alert-info">
+        Página en desarrollo. Próximamente se implementará la gestión completa de usuarios.
+    </div>
+}
+
+@code {
+    private bool isAuthorized = false;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verificar si el usuario es admin/propietario
+        isAuthorized = await UserContextService.IsCurrentUserAdminAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void VolverAlDashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+}
 

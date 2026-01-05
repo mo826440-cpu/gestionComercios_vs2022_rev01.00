@@ -1,0 +1,203 @@
+@page "/"
+@using Shared.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Gestión Comercios - Inicio</PageTitle>
+
+<div class="landing-container">
+    <div class="landing-content">
+        <div class="landing-header">
+            <h1 class="landing-title">Gestión Comercios</h1>
+            <p class="landing-subtitle">Sistema integral para la gestión de tu negocio</p>
+        </div>
+
+        <div class="landing-actions">
+            <div class="action-card">
+                <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                    </svg>
+                </div>
+                <h3>Ingresar</h3>
+                <p>Accede a tu cuenta para gestionar tu negocio</p>
+                <button class="btn btn-primary btn-lg" @onclick="NavigateToLogin">
+                    Iniciar Sesión
+                </button>
+            </div>
+
+            <div class="action-card">
+                <div class="action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+                    </svg>
+                </div>
+                <h3>Registrarse</h3>
+                <p>Crea tu cuenta y comienza a gestionar tu comercio</p>
+                <button class="btn btn-outline-primary btn-lg" @onclick="NavigateToRegister">
+                    Crear Cuenta
+                </button>
+            </div>
+        </div>
+
+        <div class="landing-features">
+            <div class="feature-item">
+                <h4>📦 Gestión de Inventario</h4>
+                <p>Controla tu stock y productos de manera eficiente</p>
+            </div>
+            <div class="feature-item">
+                <h4>💰 Ventas y Compras</h4>
+                <p>Gestiona tus transacciones comerciales</p>
+            </div>
+            <div class="feature-item">
+                <h4>👥 Clientes y Proveedores</h4>
+                <p>Mantén organizada tu base de contactos</p>
+            </div>
+            <div class="feature-item">
+                <h4>📊 Reportes</h4>
+                <p>Analiza el rendimiento de tu negocio</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Si el usuario ya está autenticado, redirigir al dashboard
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (isAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard");
+        }
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/registro");
+    }
+}
+
+<style>
+    .landing-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+    }
+
+    .landing-content {
+        max-width: 1200px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .landing-header {
+        margin-bottom: 3rem;
+        color: white;
+    }
+
+    .landing-title {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .landing-subtitle {
+        font-size: 1.5rem;
+        opacity: 0.9;
+    }
+
+    .landing-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    .action-icon {
+        color: #667eea;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-card h3 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .action-card p {
+        color: #666;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        width: 100%;
+    }
+
+    .landing-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    .feature-item {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 1.5rem;
+        color: white;
+    }
+
+    .feature-item h4 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-item p {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .landing-title {
+            font-size: 2.5rem;
+        }
+
+        .landing-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .landing-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+

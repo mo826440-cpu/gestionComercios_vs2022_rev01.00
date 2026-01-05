@@ -7,7 +7,7 @@
     <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
     <FocusOnNavigate RouteData="@routeData" Selector="h1" />
 }
-else if (routeData?.PageType?.FullName?.Contains("Login") == true)
+else if (IsPublicPage())
 {
     <RouteView RouteData="@routeData" DefaultLayout="@typeof(LoginLayout)" />
     <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -41,5 +41,13 @@ else
         isAuthenticated = await AuthService.IsAuthenticatedAsync();
         isLoading = false;
         StateHasChanged();
+    }
+
+    private bool IsPublicPage()
+    {
+        var pageType = routeData?.PageType?.FullName ?? "";
+        return pageType.Contains("Login") || 
+               pageType.Contains("Landing") || 
+               pageType.Contains("Registro");
     }
 }

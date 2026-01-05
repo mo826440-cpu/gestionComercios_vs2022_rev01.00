@@ -1,0 +1,449 @@
+@page "/registro"
+@using Shared.Services
+@using Shared.Models
+@inject IAuthService AuthService
+@inject IComercioService ComercioService
+@inject IUsuarioService UsuarioService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+
+<PageTitle>Registro - Gestión Comercios</PageTitle>
+
+<div class="registro-container">
+    <div class="registro-card">
+        <h2>Crear Cuenta</h2>
+        <p class="text-muted">Completa los siguientes datos para crear tu cuenta y comercio</p>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">@successMessage</div>
+        }
+
+        <EditForm Model="@registroModel" OnValidSubmit="@HandleRegistro">
+            <DataAnnotationsValidator />
+
+            <!-- Paso 1: Validación de Email -->
+            @if (currentStep == 1)
+            {
+                <div class="step-content">
+                    <h4>Paso 1: Validación de Email</h4>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <InputText id="email" type="email" @bind-Value="registroModel.Email" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.Email)" />
+                        <small class="form-text text-muted">Solo emails autorizados pueden registrarse</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                        <button type="button" class="btn btn-primary" @onclick="ValidarEmail">Continuar</button>
+                    </div>
+                </div>
+            }
+
+            <!-- Paso 2: Datos Personales -->
+            @if (currentStep == 2)
+            {
+                <div class="step-content">
+                    <h4>Paso 2: Datos Personales</h4>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <div class="password-input-container">
+                            <InputText id="password" type="@(showPassword ? "text" : "password")" @bind-Value="registroModel.Password" class="form-control" />
+                            <button type="button" class="btn-toggle-password" @onclick="TogglePasswordVisibility" title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
+                                @if (showPassword)
+                                {
+                                    <span>👁️</span>
+                                }
+                                else
+                                {
+                                    <span>👁️‍🗨️</span>
+                                }
+                            </button>
+                        </div>
+                        <ValidationMessage For="@(() => registroModel.Password)" />
+                        <small class="form-text text-muted">Mínimo 6 caracteres</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <InputText id="confirmPassword" type="password" @bind-Value="registroModel.ConfirmPassword" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.ConfirmPassword)" />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="Anterior">Anterior</button>
+                        <button type="button" class="btn btn-primary" @onclick="Siguiente">Siguiente</button>
+                    </div>
+                </div>
+            }
+
+            <!-- Paso 3: Datos del Comercio -->
+            @if (currentStep == 3)
+            {
+                <div class="step-content">
+                    <h4>Paso 3: Datos del Comercio</h4>
+                    <div class="form-group">
+                        <label for="comercioNombre">Nombre del Comercio *</label>
+                        <InputText id="comercioNombre" @bind-Value="registroModel.ComercioNombre" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.ComercioNombre)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="comercioTelefono">Teléfono</label>
+                        <InputText id="comercioTelefono" @bind-Value="registroModel.ComercioTelefono" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="comercioDireccion">Dirección</label>
+                        <InputTextArea id="comercioDireccion" @bind-Value="registroModel.ComercioDireccion" class="form-control" rows="3" />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="Anterior">Anterior</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span>Creando cuenta...</span>
+                            }
+                            else
+                            {
+                                <span>Crear Cuenta</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            }
+        </EditForm>
+
+        <div class="mt-3 text-center">
+            <p>¿Ya tienes una cuenta? <a href="/login">Iniciar Sesión</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegistroModel registroModel = new();
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+    private bool showPassword = false;
+    private int currentStep = 1;
+
+    // Email autorizado (temporal - se reemplazará por sistema de pago)
+    private const string EMAIL_AUTORIZADO = "mo846440@gmail.com";
+
+    private class RegistroModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El email es requerido")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida")]
+        [System.ComponentModel.DataAnnotations.MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        public string Password { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Debes confirmar la contraseña")]
+        [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre del comercio es requerido")]
+        public string ComercioNombre { get; set; } = string.Empty;
+
+        public string? ComercioTelefono { get; set; }
+        public string? ComercioDireccion { get; set; }
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private void ValidarEmail()
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(registroModel.Email))
+        {
+            errorMessage = "Por favor, ingresa un email";
+            return;
+        }
+
+        if (!registroModel.Email.Equals(EMAIL_AUTORIZADO, StringComparison.OrdinalIgnoreCase))
+        {
+            errorMessage = $"El email {registroModel.Email} no está autorizado para registrarse. Por favor, contacta al administrador.";
+            return;
+        }
+
+        // Email válido, pasar al siguiente paso
+        currentStep = 2;
+    }
+
+    private void Siguiente()
+    {
+        errorMessage = string.Empty;
+
+        // Validar contraseñas
+        if (string.IsNullOrWhiteSpace(registroModel.Password))
+        {
+            errorMessage = "La contraseña es requerida";
+            return;
+        }
+
+        if (registroModel.Password.Length < 6)
+        {
+            errorMessage = "La contraseña debe tener al menos 6 caracteres";
+            return;
+        }
+
+        if (registroModel.Password != registroModel.ConfirmPassword)
+        {
+            errorMessage = "Las contraseñas no coinciden";
+            return;
+        }
+
+        currentStep = 3;
+    }
+
+    private void Anterior()
+    {
+        if (currentStep > 1)
+        {
+            currentStep--;
+            errorMessage = string.Empty;
+        }
+    }
+
+    private void Cancelar()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task HandleRegistro()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            // 1. Crear usuario en Supabase Auth
+            var authSession = await AuthService.SignUpAsync(registroModel.Email, registroModel.Password);
+            
+            if (authSession == null || authSession.User == null)
+            {
+                errorMessage = "Error al crear la cuenta. Por favor, intenta nuevamente.";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // El ID de Supabase Auth puede ser string, convertirlo a Guid
+            Guid authUserId;
+            if (!Guid.TryParse(authSession.User.Id, out authUserId))
+            {
+                errorMessage = "Error al obtener el ID del usuario. Por favor, intenta nuevamente.";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 2. Crear el comercio
+            var comercio = new Comercio
+            {
+                Id = Guid.NewGuid(),
+                Nombre = registroModel.ComercioNombre,
+                Email = registroModel.Email,
+                Telefono = registroModel.ComercioTelefono,
+                Direccion = registroModel.ComercioDireccion,
+                Activo = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var comercioCreado = await ComercioService.CreateAsync(comercio);
+
+            // 3. Obtener el rol de admin (buscar por nombre "admin" o usar EsPropietario)
+            // Por ahora, usamos EsPropietario = true para indicar que es admin
+            // TODO: En el futuro, buscar el rol "admin" en la tabla roles y asignarlo
+
+            // 4. Crear el usuario en la tabla usuarios
+            var usuario = new Usuario
+            {
+                Id = Guid.NewGuid(),
+                AuthUserId = authUserId,
+                ComercioId = comercioCreado.Id,
+                RolId = null, // TODO: Asignar rol admin cuando esté implementado
+                Activo = true,
+                EsPropietario = true, // El usuario que se registra es propietario/admin
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await UsuarioService.CreateAsync(usuario);
+
+            successMessage = "¡Cuenta creada exitosamente! Redirigiendo al dashboard...";
+            ToastService.ShowSuccess("Cuenta creada exitosamente");
+
+            // Esperar un momento y redirigir
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al crear la cuenta: {ex.Message}";
+            Console.WriteLine($"Error en registro: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .registro-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+    }
+
+    .registro-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .registro-card h2 {
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .step-content {
+        margin-top: 2rem;
+    }
+
+    .step-content h4 {
+        color: #667eea;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .password-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-toggle-password {
+        position: absolute;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 1.2rem;
+    }
+
+    .btn-toggle-password:hover {
+        color: #333;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: #5568d3;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+

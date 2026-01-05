@@ -1,5 +1,7 @@
 ﻿@using Shared.Services
+@using Client.Services
 @inject IAuthService AuthService
+@inject IUserContextService UserContextService
 @inject NavigationManager Navigation
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -71,11 +73,14 @@
             </NavLink>
         </div>
         
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="usuarios">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Usuarios
-            </NavLink>
-        </div>
+        @if (isAdmin)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="usuarios">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Usuarios
+                </NavLink>
+            </div>
+        }
         
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="reportes">
@@ -94,9 +99,17 @@
 @code {
     private bool collapseNavMenu = true;
     private bool referenciasExpanded = true; // Por defecto expandido
+    private bool isAdmin = false;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
     private string chevronClass => referenciasExpanded ? "bi bi-chevron-down-nav-menu" : "bi bi-chevron-right-nav-menu";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verificar si el usuario es admin para mostrar/ocultar el menú Usuarios
+        isAdmin = await UserContextService.IsCurrentUserAdminAsync();
+        StateHasChanged();
+    }
 
     private void ToggleNavMenu()
     {
