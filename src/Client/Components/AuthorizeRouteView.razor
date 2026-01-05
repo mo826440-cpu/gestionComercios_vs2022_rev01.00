@@ -9,7 +9,8 @@
 }
 else if (routeData?.PageType?.FullName?.Contains("Login") == true)
 {
-    <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    <RouteView RouteData="@routeData" DefaultLayout="@typeof(LoginLayout)" />
+    <FocusOnNavigate RouteData="@routeData" Selector="h1" />
 }
 else
 {

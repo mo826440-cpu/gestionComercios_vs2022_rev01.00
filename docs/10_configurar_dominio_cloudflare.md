@@ -24,18 +24,33 @@
 
 ### Paso 3: Configurar DNS
 
-Cloudflare te dará las instrucciones específicas. Normalmente:
+Cloudflare requiere gestionar el DNS del dominio. Tenés dos opciones:
 
-1. **Si tu dominio está en Cloudflare:**
-   - Cloudflare configurará automáticamente los registros DNS
-   - Solo necesitás esperar a que se propaguen (puede tardar unos minutos)
+#### Opción A: Transferir DNS a Cloudflare (Recomendado)
 
-2. **Si tu dominio NO está en Cloudflare:**
-   - Agregar un registro CNAME en tu proveedor DNS:
-     - **Tipo:** CNAME
-     - **Nombre:** @ (o adminisgo.com.ar)
-     - **Valor:** `gestion-comercios.pages.dev`
-   - O agregar un registro A con la IP que Cloudflare te proporcione
+1. Click en **"Iniciar transferencia de DNS"** en la pantalla de Cloudflare Pages
+2. Seguir los pasos que Cloudflare te indique
+3. Cambiar los **nameservers** del dominio en tu registrador a los que Cloudflare te proporcione
+4. Esperar a que se propaguen (puede tardar unas horas, normalmente 15 minutos - 2 horas)
+5. Una vez completado, Cloudflare agregará automáticamente el dominio a Pages
+
+**Ventajas:**
+- ✅ SSL automático y gratis
+- ✅ CDN global
+- ✅ Configuración más fácil
+- ✅ Mejor rendimiento
+
+#### Opción B: Configurar Manualmente (Si preferís mantener DNS en tu proveedor)
+
+1. **NO** click en "Iniciar transferencia de DNS"
+2. Cancelar y configurar manualmente en tu proveedor DNS:
+   - **Tipo:** CNAME
+   - **Nombre:** @ (o adminisgo.com.ar)
+   - **Valor:** `gestion-comercios.pages.dev`
+3. Esperar propagación DNS
+4. Volver a Cloudflare Pages y agregar el dominio
+
+**Nota:** Esta opción es más complicada y puede requerir configuración adicional.
 
 ### Paso 4: Verificar SSL
 

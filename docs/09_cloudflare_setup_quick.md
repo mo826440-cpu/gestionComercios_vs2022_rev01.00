@@ -38,10 +38,18 @@ El archivo `.github/workflows/deploy-cloudflare.yml` ya está creado y configura
 
 ### 4. Activar el Deployment
 
-1. Hacer commit y push del workflow (si no lo hiciste)
-2. O hacer cualquier push a la rama `main`
-3. GitHub Actions ejecutará el workflow automáticamente
+**📖 Guía detallada:** Ver `docs/09_cloudflare_activar_deployment.md` para pasos completos.
+
+**Resumen rápido:**
+1. El workflow ya está en GitHub (`.github/workflows/deploy-cloudflare.yml`)
+2. Hacer cualquier push a la rama `main` para activarlo automáticamente
+   ```bash
+   git commit --allow-empty -m "Trigger deployment"
+   git push
+   ```
+3. O ejecutarlo manualmente desde GitHub: **Actions** → **Build and Deploy to Cloudflare Pages** → **Run workflow**
 4. Ver el progreso en: **Actions** tab en GitHub
+5. Tiempo estimado: 3-5 minutos
 
 ### 5. Verificar el Deployment
 
@@ -63,3 +71,4 @@ El archivo `.github/workflows/deploy-cloudflare.yml` ya está creado y configura
 
 Cloudflare Pages no incluye el SDK de .NET en su entorno de build. Por eso falla cuando intenta compilar proyectos Blazor directamente desde Git. La solución es hacer el build en GitHub Actions (que SÍ tiene .NET) y luego subir los archivos estáticos a Cloudflare Pages.
 
+nBme7ad8Kexq-57_jfDZC9FtdwvKyxilOb0jdXBv
