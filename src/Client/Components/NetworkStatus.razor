@@ -11,11 +11,16 @@
 }
 
 @code {
+    private bool showOfflineBanner = false;
+
     protected override async Task OnInitializedAsync()
     {
         NetworkService.OnConnectionChanged += HandleConnectionChanged;
         await NetworkService.InitializeAsync();
-        await NetworkService.IsOnlineAsync();
+        
+        // Verificar estado inicial
+        var isOnline = await NetworkService.IsOnlineAsync();
+        showOfflineBanner = !isOnline;
         StateHasChanged();
     }
 
