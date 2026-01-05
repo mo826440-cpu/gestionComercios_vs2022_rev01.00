@@ -17,7 +17,6 @@ else if (NotAuthorized != null)
     [Parameter] public string? Roles { get; set; }
 
     private bool authorized = false;
-    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -26,7 +25,6 @@ else if (NotAuthorized != null)
         // Si hay roles requeridos, verificar aquí (requeriría AuthorizationService)
         // Por ahora solo verificamos autenticación básica
         
-        isLoading = false;
         StateHasChanged();
     }
 }

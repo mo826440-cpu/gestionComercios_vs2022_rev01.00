@@ -31,13 +31,11 @@ else
 
 @code {
     private bool isAuthorized = false;
-    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         // Verificar si el usuario es admin/propietario
         isAuthorized = await UserContextService.IsCurrentUserAdminAsync();
-        isLoading = false;
         StateHasChanged();
     }
 
