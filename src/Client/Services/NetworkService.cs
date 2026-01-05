@@ -9,7 +9,7 @@ public class NetworkService : INetworkService, IDisposable
 {
     private readonly IJSRuntime _jsRuntime;
     private DotNetObjectReference<NetworkService>? _dotNetRef;
-    private bool _isOnline = true;
+    private bool _isOnline = true; // Por defecto asumir online (mejor UX)
 
     public NetworkService(IJSRuntime jsRuntime)
     {
@@ -24,13 +24,17 @@ public class NetworkService : INetworkService, IDisposable
     {
         try
         {
-            _isOnline = await _jsRuntime.InvokeAsync<bool>("navigator.onLine");
+            // Usar navigator.onLine como indicador primario
+            // Nota: navigator.onLine puede dar falsos positivos, pero es mejor asumir online
+            // para no mostrar el mensaje innecesariamente
+            _isOnline = await _jsRuntime.InvokeAsync<bool>("eval", "navigator.onLine");
             return _isOnline;
         }
         catch
         {
-            _isOnline = false;
-            return false;
+            // Si hay error, asumir online por defecto (mejor UX)
+            _isOnline = true;
+            return true;
         }
     }
 
@@ -38,21 +42,32 @@ public class NetworkService : INetworkService, IDisposable
     {
         _dotNetRef = DotNetObjectReference.Create(this);
         await _jsRuntime.InvokeVoidAsync("registerNetworkService", _dotNetRef);
+        // Verificar estado inicial
         _isOnline = await IsOnlineAsync();
     }
 
     [JSInvokable]
     public void OnOnline()
     {
+        var wasOnline = _isOnline;
         _isOnline = true;
-        OnConnectionChanged?.Invoke(true);
+        
+        if (!wasOnline)
+        {
+            OnConnectionChanged?.Invoke(true);
+        }
     }
 
     [JSInvokable]
     public void OnOffline()
     {
+        var wasOnline = _isOnline;
         _isOnline = false;
-        OnConnectionChanged?.Invoke(false);
+        
+        if (wasOnline)
+        {
+            OnConnectionChanged?.Invoke(false);
+        }
     }
 
     public void Dispose()
