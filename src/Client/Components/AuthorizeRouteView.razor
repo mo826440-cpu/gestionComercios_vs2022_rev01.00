@@ -25,6 +25,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await CheckAuthentication();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Verificar autenticación cada vez que cambia la ruta
+        await CheckAuthentication();
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task CheckAuthentication()
+    {
+        isLoading = true;
         isAuthenticated = await AuthService.IsAuthenticatedAsync();
         isLoading = false;
         StateHasChanged();

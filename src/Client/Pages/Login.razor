@@ -25,7 +25,19 @@
 
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <InputText id="password" type="password" @bind-Value="loginModel.Password" class="form-control" />
+                <div class="password-input-container">
+                    <InputText id="password" type="@(showPassword ? "text" : "password")" @bind-Value="loginModel.Password" class="form-control" />
+                    <button type="button" class="btn-toggle-password" @onclick="TogglePasswordVisibility" title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
+                        @if (showPassword)
+                        {
+                            <span>👁️</span>
+                        }
+                        else
+                        {
+                            <span>👁️‍🗨️</span>
+                        }
+                    </button>
+                </div>
                 <ValidationMessage For="@(() => loginModel.Password)" />
             </div>
 
@@ -47,11 +59,17 @@
     private LoginModel loginModel = new();
     private string errorMessage = string.Empty;
     private bool isLoading = false;
+    private bool showPassword = false;
 
     private class LoginModel
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
     }
 
     private async Task HandleLogin()
@@ -64,18 +82,22 @@
         {
             var session = await AuthService.SignInAsync(loginModel.Email, loginModel.Password);
             
-            if (session != null)
+            if (session != null && session.User != null)
             {
-                Navigation.NavigateTo("/");
+                // Forzar actualización del estado de autenticación
+                await Task.Delay(100); // Pequeña pausa para asegurar que la sesión se establezca
+                Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
-                errorMessage = "Credenciales inválidas";
+                errorMessage = "Credenciales inválidas. Por favor, verifica tu email y contraseña.";
             }
         }
         catch (Exception ex)
         {
+            // Mostrar error más descriptivo
             errorMessage = $"Error al iniciar sesión: {ex.Message}";
+            Console.WriteLine($"Error de login: {ex}");
         }
         finally
         {
@@ -116,8 +138,33 @@
     .form-control {
         width: 100%;
         padding: 0.5rem;
+        padding-right: 2.5rem;
         border: 1px solid #ddd;
         border-radius: 4px;
+    }
+
+    .password-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-toggle-password {
+        position: absolute;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 1.2rem;
+    }
+
+    .btn-toggle-password:hover {
+        color: #333;
     }
 
     .btn {
