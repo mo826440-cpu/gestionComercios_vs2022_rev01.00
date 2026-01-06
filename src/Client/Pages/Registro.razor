@@ -210,49 +210,58 @@
     private void ValidarEmail()
     {
         errorMessage = string.Empty;
+        StateHasChanged();
 
         if (string.IsNullOrWhiteSpace(registroModel.Email))
         {
             errorMessage = "Por favor, ingresa un email";
+            StateHasChanged();
             return;
         }
 
         if (!System.Text.RegularExpressions.Regex.IsMatch(registroModel.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
             errorMessage = "El formato del email no es válido";
+            StateHasChanged();
             return;
         }
 
         if (string.IsNullOrWhiteSpace(registroModel.ConfirmEmail))
         {
             errorMessage = "Por favor, confirma tu email";
+            StateHasChanged();
             return;
         }
 
         if (registroModel.Email != registroModel.ConfirmEmail)
         {
             errorMessage = "Los emails no coinciden";
+            StateHasChanged();
             return;
         }
 
         if (!registroModel.Email.Equals(EMAIL_AUTORIZADO, StringComparison.OrdinalIgnoreCase))
         {
             errorMessage = $"El email {registroModel.Email} no está autorizado para registrarse. Por favor, contacta al administrador.";
+            StateHasChanged();
             return;
         }
 
         // Email válido, pasar al siguiente paso
         currentStep = 2;
+        StateHasChanged();
     }
 
     private async Task Siguiente()
     {
         errorMessage = string.Empty;
+        StateHasChanged();
 
         // Validar nombre
         if (string.IsNullOrWhiteSpace(registroModel.Nombre))
         {
             errorMessage = "El nombre y apellido es requerido";
+            StateHasChanged();
             return;
         }
 
@@ -260,12 +269,14 @@
         if (string.IsNullOrWhiteSpace(registroModel.Usuario))
         {
             errorMessage = "El nombre de usuario es requerido";
+            StateHasChanged();
             return;
         }
 
         if (registroModel.Usuario.Length < 3)
         {
             errorMessage = "El usuario debe tener al menos 3 caracteres";
+            StateHasChanged();
             return;
         }
 
@@ -273,6 +284,7 @@
         if (string.IsNullOrWhiteSpace(registroModel.Contacto))
         {
             errorMessage = "El contacto es requerido";
+            StateHasChanged();
             return;
         }
 
@@ -280,22 +292,26 @@
         if (string.IsNullOrWhiteSpace(registroModel.Password))
         {
             errorMessage = "La contraseña es requerida";
+            StateHasChanged();
             return;
         }
 
         if (registroModel.Password.Length < 6)
         {
             errorMessage = "La contraseña debe tener al menos 6 caracteres";
+            StateHasChanged();
             return;
         }
 
         if (registroModel.Password != registroModel.ConfirmPassword)
         {
             errorMessage = "Las contraseñas no coinciden";
+            StateHasChanged();
             return;
         }
 
         currentStep = 3;
+        StateHasChanged();
     }
 
     private void Anterior()

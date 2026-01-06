@@ -40,12 +40,20 @@ public class UsuarioService : IUsuarioService
 
     public async Task<Usuario?> GetByAuthUserIdAsync(Guid authUserId)
     {
-        var response = await _supabaseService.Client
-            .From<Usuario>()
-            .Where(x => x.AuthUserId == authUserId)
-            .Single();
+        try
+        {
+            var response = await _supabaseService.Client
+                .From<Usuario>()
+                .Where(x => x.AuthUserId == authUserId)
+                .Single();
 
-        return response;
+            return response;
+        }
+        catch
+        {
+            // Si no se encuentra el usuario o hay un error, retornar null
+            return null;
+        }
     }
 
     public async Task<Usuario> CreateAsync(Usuario usuario)

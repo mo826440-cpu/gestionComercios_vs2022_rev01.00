@@ -99,7 +99,19 @@
         try
         {
             // 1. Buscar el comercio por ID público
-            var comercio = await ComercioService.GetByIdPublicoAsync(loginModel.IdComercio);
+            Comercio? comercio = null;
+            try
+            {
+                comercio = await ComercioService.GetByIdPublicoAsync(loginModel.IdComercio);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al buscar comercio: {ex}");
+                errorMessage = $"Error al buscar el comercio: {ex.Message}";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
 
             if (comercio == null)
             {
@@ -169,11 +181,34 @@
                 return;
             }
 
-            var usuarioEnComercio = await UsuarioService.GetByAuthUserIdAsync(authUserId);
-            if (usuarioEnComercio == null || usuarioEnComercio.ComercioId != comercio.Id)
+            Usuario? usuarioEnComercio = null;
+            try
+            {
+                usuarioEnComercio = await UsuarioService.GetByAuthUserIdAsync(authUserId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al buscar usuario: {ex}");
+                errorMessage = $"Error al buscar el usuario: {ex.Message}";
+                await AuthService.SignOutAsync();
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (usuarioEnComercio == null)
+            {
+                errorMessage = "No se encontró un usuario asociado a esta cuenta. Por favor, contacta al administrador.";
+                await AuthService.SignOutAsync();
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (usuarioEnComercio.ComercioId != comercio.Id)
             {
                 errorMessage = $"El usuario no pertenece al comercio con ID: {loginModel.IdComercio}";
-                await AuthService.SignOutAsync(); // Cerrar sesión si no corresponde
+                await AuthService.SignOutAsync();
                 isLoading = false;
                 StateHasChanged();
                 return;
