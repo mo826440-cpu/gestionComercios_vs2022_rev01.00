@@ -55,6 +55,7 @@ public class ComercioService : IComercioService
             .Set(x => x.Email, comercio.Email)
             .Set(x => x.Telefono, comercio.Telefono)
             .Set(x => x.Direccion, comercio.Direccion)
+            .Set(x => x.IdPublico, comercio.IdPublico)
             .Set(x => x.Activo, comercio.Activo)
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
@@ -72,12 +73,36 @@ public class ComercioService : IComercioService
 
     public async Task<Comercio?> GetByEmailAsync(string email)
     {
-        var response = await _supabaseService.Client
-            .From<Comercio>()
-            .Where(x => x.Email == email)
-            .Single();
+        try
+        {
+            var response = await _supabaseService.Client
+                .From<Comercio>()
+                .Where(x => x.Email == email)
+                .Single();
 
-        return response;
+            return response;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<Comercio?> GetByIdPublicoAsync(string idPublico)
+    {
+        try
+        {
+            var response = await _supabaseService.Client
+                .From<Comercio>()
+                .Where(x => x.IdPublico == idPublico)
+                .Single();
+
+            return response;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 

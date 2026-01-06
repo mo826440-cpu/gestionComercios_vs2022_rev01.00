@@ -107,19 +107,19 @@
 - [x] Documentar cambios necesarios
 - [x] **Entregable:** `docs/21_analisis_sistema_registro_login.md`
 
-### 3.2 Mejoras en el Formulario de Registro
-- [ ] Agregar campo Email (confirmación - 2 veces)
-- [ ] Agregar campo Usuario (único por comercio)
-- [ ] Mejorar campo Contraseña (confirmación - 2 veces)
-- [ ] Agregar campo Contacto (obligatorio)
-- [ ] Agregar checkbox "Aceptar términos y condiciones"
-- [ ] Crear/actualizar página de términos y condiciones
-- [ ] Validaciones en formulario
-  - [ ] Email válido y coincidencia
-  - [ ] Usuario único
-  - [ ] Contraseña segura y coincidencia
-  - [ ] Contacto válido
-  - [ ] Términos aceptados
+### 3.2 Mejoras en el Formulario de Registro ✅ COMPLETADO
+- [x] Agregar campo Email (confirmación - 2 veces)
+- [x] Agregar campo Usuario (único por comercio)
+- [x] Mejorar campo Contraseña (confirmación - 2 veces)
+- [x] Agregar campo Contacto (obligatorio)
+- [x] Agregar checkbox "Aceptar términos y condiciones"
+- [x] Crear/actualizar página de términos y condiciones
+- [x] Validaciones en formulario
+  - [x] Email válido y coincidencia
+  - [x] Usuario único
+  - [x] Contraseña segura y coincidencia
+  - [x] Contacto válido
+  - [x] Términos aceptados
 
 ### 3.3 Sistema de Notificación y Aprobación
 - [ ] Configurar servicio de email (Supabase o externo)
@@ -128,25 +128,25 @@
 - [ ] Crear sistema de aprobación (manual, vía email o panel admin)
 - [ ] Estados: Pendiente → Aprobado → Rechazado
 
-### 3.4 Generación de IDs
-- [ ] ID único de Usuario (formato: XX + ID_COMERCIO)
-- [ ] ID único de Comercio (automático al aprobar registro)
-- [ ] Lógica de numeración secuencial por comercio
+### 3.4 Generación de IDs ✅ COMPLETADO
+- [x] ID único de Usuario (formato: XX + ID_COMERCIO)
+- [x] ID único de Comercio (automático al aprobar registro)
+- [x] Lógica de numeración secuencial por comercio
 
-### 3.5 Mejoras en el Login
-- [ ] Agregar campo "ID del Comercio" al formulario
-- [ ] Autocompletado/selector de ID del Comercio (si usuario tiene múltiples)
-- [ ] Validación de credenciales + ID de comercio
-- [ ] Mensajes de error claros
+### 3.5 Mejoras en el Login ✅ COMPLETADO
+- [x] Agregar campo "ID del Comercio" al formulario
+- [x] Autocompletado/selector de ID del Comercio (si usuario tiene múltiples)
+- [x] Validación de credenciales + ID de comercio
+- [x] Mensajes de error claros
 
-### 3.6 Sistema de Roles
-- [ ] Verificar/actualizar tabla `roles` en BD
-- [ ] Roles requeridos:
-  - [ ] Admin (dueño del comercio) - EsPropietario=true
-  - [ ] User (empleado) - EsPropietario=false
-  - [ ] Programador (rol especial, acceso a Mantenimiento)
-- [ ] Asignación automática de rol Admin al registrarse
-- [ ] Lógica de permisos por rol
+### 3.6 Sistema de Roles ✅ COMPLETADO (Parcial)
+- [x] Verificar/actualizar tabla `roles` en BD (script SQL creado)
+- [x] Roles requeridos:
+  - [x] Admin (dueño del comercio) - EsPropietario=true
+  - [x] User (empleado) - EsPropietario=false
+  - [x] Programador (rol especial, acceso a Mantenimiento)
+- [x] Asignación automática de rol Admin al registrarse
+- [x] Lógica de permisos por rol (estructura base implementada)
 
 ### 3.7 Autenticación Adicional (Preparar)
 - [ ] Estructura para segunda capa de autenticación

@@ -26,7 +26,7 @@ public class Usuario : BaseModel
     public string? Nombre { get; set; } // Nombre y apellido del usuario
     
     [Column("usuario")]
-    public string? Usuario { get; set; } // Nombre de usuario (único por comercio)
+    public string? NombreUsuario { get; set; } // Nombre de usuario (único por comercio)
     
     [Column("contacto")]
     public string? Contacto { get; set; } // Teléfono/celular

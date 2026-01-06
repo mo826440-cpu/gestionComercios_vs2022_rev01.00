@@ -1,0 +1,147 @@
+@page "/terminos-condiciones"
+
+<PageTitle>Términos y Condiciones - Gestión Comercios</PageTitle>
+
+<div class="terminos-container">
+    <div class="terminos-card">
+        <h1>Términos y Condiciones de Uso</h1>
+        <p class="text-muted">Última actualización: @DateTime.Now.ToString("dd/MM/yyyy")</p>
+
+        <div class="terminos-content">
+            <h2>1. Aceptación de los Términos</h2>
+            <p>
+                Al acceder y utilizar el servicio de Gestión Comercios, usted acepta cumplir con estos términos y condiciones.
+                Si no está de acuerdo con alguna parte de estos términos, no debe utilizar el servicio.
+            </p>
+
+            <h2>2. Descripción del Servicio</h2>
+            <p>
+                Gestión Comercios es un sistema de gestión para comercios y kioscos que permite:
+            </p>
+            <ul>
+                <li>Gestión de inventario y stock</li>
+                <li>Registro de ventas y compras</li>
+                <li>Control de clientes y proveedores</li>
+                <li>Reportes y análisis de datos</li>
+                <li>Funcionamiento offline con sincronización automática</li>
+            </ul>
+
+            <h2>3. Registro de Usuario</h2>
+            <p>
+                Para utilizar el servicio, debe registrarse proporcionando información precisa y completa.
+                Usted es responsable de mantener la confidencialidad de su cuenta y contraseña.
+            </p>
+
+            <h2>4. Uso del Servicio</h2>
+            <p>Usted se compromete a:</p>
+            <ul>
+                <li>Utilizar el servicio solo para fines legales</li>
+                <li>No intentar acceder a áreas restringidas del sistema</li>
+                <li>No interferir con el funcionamiento del servicio</li>
+                <li>Mantener la seguridad de su cuenta</li>
+            </p>
+
+            <h2>5. Privacidad y Datos</h2>
+            <p>
+                Sus datos son almacenados de forma segura. No compartimos su información con terceros sin su consentimiento.
+                Para más información, consulte nuestra Política de Privacidad.
+            </p>
+
+            <h2>6. Limitación de Responsabilidad</h2>
+            <p>
+                El servicio se proporciona "tal cual" sin garantías. No nos hacemos responsables por pérdidas de datos
+                o interrupciones del servicio, aunque haremos nuestro mejor esfuerzo para mantener la disponibilidad.
+            </p>
+
+            <h2>7. Modificaciones</h2>
+            <p>
+                Nos reservamos el derecho de modificar estos términos en cualquier momento.
+                Las modificaciones entrarán en vigor al ser publicadas en esta página.
+            </p>
+
+            <h2>8. Contacto</h2>
+            <p>
+                Si tiene preguntas sobre estos términos, puede contactarnos a través de:
+                <strong>mo846440@gmail.com</strong>
+            </p>
+        </div>
+
+        <div class="terminos-actions">
+            <a href="/registro" class="btn btn-primary">Volver al Registro</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .terminos-container {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #f5f5f5;
+    }
+
+    .terminos-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .terminos-card h1 {
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .terminos-content {
+        margin-top: 2rem;
+        line-height: 1.8;
+    }
+
+    .terminos-content h2 {
+        color: #667eea;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .terminos-content p {
+        margin-bottom: 1rem;
+        color: #555;
+    }
+
+    .terminos-content ul {
+        margin-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .terminos-content li {
+        margin-bottom: 0.5rem;
+        color: #555;
+    }
+
+    .terminos-actions {
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #5568d3;
+    }
+</style>
+

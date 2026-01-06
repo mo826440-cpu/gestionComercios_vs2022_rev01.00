@@ -1,7 +1,11 @@
 @page "/login"
 @using Shared.Services
+@using Shared.Models
 @inject IAuthService AuthService
+@inject IUsuarioService UsuarioService
+@inject IComercioService ComercioService
 @inject NavigationManager Navigation
+@inject IToastService ToastService
 
 <PageTitle>Iniciar Sesión</PageTitle>
 
@@ -18,13 +22,21 @@
             <DataAnnotationsValidator />
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" @bind-Value="loginModel.Email" class="form-control" />
-                <ValidationMessage For="@(() => loginModel.Email)" />
+                <label for="usuarioOrEmail">Usuario o Email *</label>
+                <InputText id="usuarioOrEmail" @bind-Value="loginModel.UsuarioOrEmail" class="form-control" placeholder="Usuario o email" />
+                <ValidationMessage For="@(() => loginModel.UsuarioOrEmail)" />
+                <small class="form-text text-muted">Ingresa tu nombre de usuario o email</small>
             </div>
 
             <div class="form-group">
-                <label for="password">Contraseña</label>
+                <label for="idComercio">ID del Comercio *</label>
+                <InputText id="idComercio" @bind-Value="loginModel.IdComercio" class="form-control" placeholder="Ej: 01" />
+                <ValidationMessage For="@(() => loginModel.IdComercio)" />
+                <small class="form-text text-muted">ID público de tu comercio (formato: 01, 02, etc.)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña *</label>
                 <div class="password-input-container">
                     <InputText id="password" type="@(showPassword ? "text" : "password")" @bind-Value="loginModel.Password" class="form-control" />
                     <button type="button" class="btn-toggle-password" @onclick="TogglePasswordVisibility" title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
@@ -63,7 +75,13 @@
 
     private class LoginModel
     {
-        public string Email { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El usuario o email es requerido")]
+        public string UsuarioOrEmail { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El ID del comercio es requerido")]
+        public string IdComercio { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida")]
         public string Password { get; set; } = string.Empty;
     }
 
@@ -80,33 +98,117 @@
 
         try
         {
-            var session = await AuthService.SignInAsync(loginModel.Email, loginModel.Password);
-            
-            if (session != null && session.User != null)
+            // 1. Buscar el comercio por ID público
+            var comercio = await ComercioService.GetByIdPublicoAsync(loginModel.IdComercio);
+
+            if (comercio == null)
             {
-                // Esperar un momento para que la sesión se establezca completamente
-                await Task.Delay(200);
-                
-                // Verificar que la sesión esté disponible antes de navegar
-                var currentSession = await AuthService.GetSessionAsync();
-                if (currentSession != null)
-                {
-                    Navigation.NavigateTo("/dashboard");
-                }
-                else
-                {
-                    errorMessage = "Error: No se pudo establecer la sesión. Por favor, intenta nuevamente.";
-                }
+                errorMessage = $"No se encontró un comercio con ID: {loginModel.IdComercio}";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 2. Determinar si el usuario ingresó email o nombre de usuario
+            string emailParaLogin = string.Empty;
+            bool esEmail = loginModel.UsuarioOrEmail.Contains("@");
+
+            if (esEmail)
+            {
+                // Es un email, usarlo directamente
+                emailParaLogin = loginModel.UsuarioOrEmail;
             }
             else
             {
-                errorMessage = "Credenciales inválidas. Por favor, verifica tu email y contraseña.";
+                // Es un nombre de usuario, buscar el usuario y obtener su email
+                var usuario = await UsuarioService.GetByUsuarioAsync(comercio.Id, loginModel.UsuarioOrEmail);
+                if (usuario == null)
+                {
+                    errorMessage = $"No se encontró un usuario con nombre '{loginModel.UsuarioOrEmail}' en el comercio {loginModel.IdComercio}";
+                    isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Obtener el email del usuario desde Supabase Auth
+                // Necesitamos obtener el usuario de auth.users usando el AuthUserId
+                // Por ahora, intentamos login con el email del comercio como fallback
+                // TODO: Mejorar esto para obtener el email real del usuario desde auth.users
+                var comercioConEmail = await ComercioService.GetByIdAsync(comercio.Id);
+                if (comercioConEmail?.Email != null)
+                {
+                    emailParaLogin = comercioConEmail.Email;
+                }
+                else
+                {
+                    errorMessage = "No se pudo obtener el email del usuario. Por favor, usa tu email para iniciar sesión.";
+                    isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+            }
+
+            // 3. Autenticar con Supabase Auth (usando email)
+            var session = await AuthService.SignInAsync(emailParaLogin, loginModel.Password);
+            
+            if (session == null || session.User == null)
+            {
+                errorMessage = "Credenciales inválidas. Por favor, verifica tu usuario/email, ID de comercio y contraseña.";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 4. Verificar que el usuario pertenezca al comercio especificado
+            Guid authUserId;
+            if (!Guid.TryParse(session.User.Id, out authUserId))
+            {
+                errorMessage = "Error al obtener el ID del usuario. Por favor, intenta nuevamente.";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            var usuarioEnComercio = await UsuarioService.GetByAuthUserIdAsync(authUserId);
+            if (usuarioEnComercio == null || usuarioEnComercio.ComercioId != comercio.Id)
+            {
+                errorMessage = $"El usuario no pertenece al comercio con ID: {loginModel.IdComercio}";
+                await AuthService.SignOutAsync(); // Cerrar sesión si no corresponde
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 5. Verificar que el usuario esté activo
+            if (!usuarioEnComercio.Activo)
+            {
+                errorMessage = "Tu cuenta está inactiva. Por favor, contacta al administrador.";
+                await AuthService.SignOutAsync();
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 6. Esperar un momento para que la sesión se establezca completamente
+            await Task.Delay(200);
+            
+            // 7. Verificar que la sesión esté disponible antes de navegar
+            var currentSession = await AuthService.GetSessionAsync();
+            if (currentSession != null)
+            {
+                ToastService.ShowSuccess($"Bienvenido, {usuarioEnComercio.Nombre ?? usuarioEnComercio.NombreUsuario ?? "Usuario"}");
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Error: No se pudo establecer la sesión. Por favor, intenta nuevamente.";
             }
         }
         catch (Exception ex)
         {
             // Mostrar error más descriptivo
             errorMessage = $"Error al iniciar sesión: {ex.Message}";
+            ToastService.ShowError($"Error: {ex.Message}");
             Console.WriteLine($"Error de login: {ex}");
         }
         finally

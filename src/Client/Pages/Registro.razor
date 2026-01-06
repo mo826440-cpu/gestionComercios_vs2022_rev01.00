@@ -4,6 +4,8 @@
 @inject IAuthService AuthService
 @inject IComercioService ComercioService
 @inject IUsuarioService UsuarioService
+@inject IRolService RolService
+@inject IIdGeneratorService IdGeneratorService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
 
@@ -33,9 +35,14 @@
                 <div class="step-content">
                     <h4>Paso 1: Validación de Email</h4>
                     <div class="form-group">
-                        <label for="email">Email</label>
+                        <label for="email">Email *</label>
                         <InputText id="email" type="email" @bind-Value="registroModel.Email" class="form-control" />
                         <ValidationMessage For="@(() => registroModel.Email)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmEmail">Confirmar Email *</label>
+                        <InputText id="confirmEmail" type="email" @bind-Value="registroModel.ConfirmEmail" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.ConfirmEmail)" />
                         <small class="form-text text-muted">Solo emails autorizados pueden registrarse</small>
                     </div>
                     <div class="form-actions">
@@ -51,7 +58,23 @@
                 <div class="step-content">
                     <h4>Paso 2: Datos Personales</h4>
                     <div class="form-group">
-                        <label for="password">Contraseña</label>
+                        <label for="nombre">Nombre y Apellido *</label>
+                        <InputText id="nombre" @bind-Value="registroModel.Nombre" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.Nombre)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="usuario">Usuario *</label>
+                        <InputText id="usuario" @bind-Value="registroModel.Usuario" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.Usuario)" />
+                        <small class="form-text text-muted">Este será tu nombre de usuario para ingresar al sistema</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="contacto">Contacto (Teléfono/Celular) *</label>
+                        <InputText id="contacto" @bind-Value="registroModel.Contacto" class="form-control" />
+                        <ValidationMessage For="@(() => registroModel.Contacto)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña *</label>
                         <div class="password-input-container">
                             <InputText id="password" type="@(showPassword ? "text" : "password")" @bind-Value="registroModel.Password" class="form-control" />
                             <button type="button" class="btn-toggle-password" @onclick="TogglePasswordVisibility" title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
@@ -69,7 +92,7 @@
                         <small class="form-text text-muted">Mínimo 6 caracteres</small>
                     </div>
                     <div class="form-group">
-                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <label for="confirmPassword">Confirmar Contraseña *</label>
                         <InputText id="confirmPassword" type="password" @bind-Value="registroModel.ConfirmPassword" class="form-control" />
                         <ValidationMessage For="@(() => registroModel.ConfirmPassword)" />
                     </div>
@@ -97,6 +120,15 @@
                     <div class="form-group">
                         <label for="comercioDireccion">Dirección</label>
                         <InputTextArea id="comercioDireccion" @bind-Value="registroModel.ComercioDireccion" class="form-control" rows="3" />
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <InputCheckbox id="aceptarTerminos" @bind-Value="registroModel.AceptarTerminos" class="form-check-input" />
+                            <label class="form-check-label" for="aceptarTerminos">
+                                Acepto los <a href="/terminos-condiciones" target="_blank">Términos y Condiciones</a> *
+                            </label>
+                        </div>
+                        <ValidationMessage For="@(() => registroModel.AceptarTerminos)" />
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" @onclick="Anterior">Anterior</button>
@@ -138,6 +170,20 @@
         [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email inválido")]
         public string Email { get; set; } = string.Empty;
 
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Debes confirmar el email")]
+        [System.ComponentModel.DataAnnotations.Compare("Email", ErrorMessage = "Los emails no coinciden")]
+        public string ConfirmEmail { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre y apellido es requerido")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre de usuario es requerido")]
+        [System.ComponentModel.DataAnnotations.MinLength(3, ErrorMessage = "El usuario debe tener al menos 3 caracteres")]
+        public string Usuario { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El contacto es requerido")]
+        public string Contacto { get; set; } = string.Empty;
+
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida")]
         [System.ComponentModel.DataAnnotations.MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
         public string Password { get; set; } = string.Empty;
@@ -151,6 +197,9 @@
 
         public string? ComercioTelefono { get; set; }
         public string? ComercioDireccion { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Debes aceptar los términos y condiciones")]
+        public bool AceptarTerminos { get; set; } = false;
     }
 
     private void TogglePasswordVisibility()
@@ -168,6 +217,24 @@
             return;
         }
 
+        if (!System.Text.RegularExpressions.Regex.IsMatch(registroModel.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            errorMessage = "El formato del email no es válido";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(registroModel.ConfirmEmail))
+        {
+            errorMessage = "Por favor, confirma tu email";
+            return;
+        }
+
+        if (registroModel.Email != registroModel.ConfirmEmail)
+        {
+            errorMessage = "Los emails no coinciden";
+            return;
+        }
+
         if (!registroModel.Email.Equals(EMAIL_AUTORIZADO, StringComparison.OrdinalIgnoreCase))
         {
             errorMessage = $"El email {registroModel.Email} no está autorizado para registrarse. Por favor, contacta al administrador.";
@@ -178,9 +245,36 @@
         currentStep = 2;
     }
 
-    private void Siguiente()
+    private async Task Siguiente()
     {
         errorMessage = string.Empty;
+
+        // Validar nombre
+        if (string.IsNullOrWhiteSpace(registroModel.Nombre))
+        {
+            errorMessage = "El nombre y apellido es requerido";
+            return;
+        }
+
+        // Validar usuario
+        if (string.IsNullOrWhiteSpace(registroModel.Usuario))
+        {
+            errorMessage = "El nombre de usuario es requerido";
+            return;
+        }
+
+        if (registroModel.Usuario.Length < 3)
+        {
+            errorMessage = "El usuario debe tener al menos 3 caracteres";
+            return;
+        }
+
+        // Validar contacto
+        if (string.IsNullOrWhiteSpace(registroModel.Contacto))
+        {
+            errorMessage = "El contacto es requerido";
+            return;
+        }
 
         // Validar contraseñas
         if (string.IsNullOrWhiteSpace(registroModel.Password))
@@ -227,6 +321,15 @@
 
         try
         {
+            // Validar términos y condiciones
+            if (!registroModel.AceptarTerminos)
+            {
+                errorMessage = "Debes aceptar los términos y condiciones para continuar";
+                isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
             // 1. Crear usuario en Supabase Auth
             var authSession = await AuthService.SignUpAsync(registroModel.Email, registroModel.Password);
             
@@ -248,7 +351,10 @@
                 return;
             }
 
-            // 2. Crear el comercio
+            // 2. Generar ID público del comercio
+            var idPublicoComercio = await IdGeneratorService.GenerateIdPublicoComercioAsync();
+
+            // 3. Crear el comercio
             var comercio = new Comercio
             {
                 Id = Guid.NewGuid(),
@@ -256,23 +362,35 @@
                 Email = registroModel.Email,
                 Telefono = registroModel.ComercioTelefono,
                 Direccion = registroModel.ComercioDireccion,
+                IdPublico = idPublicoComercio,
                 Activo = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             var comercioCreado = await ComercioService.CreateAsync(comercio);
 
-            // 3. Obtener el rol de admin (buscar por nombre "admin" o usar EsPropietario)
-            // Por ahora, usamos EsPropietario = true para indicar que es admin
-            // TODO: En el futuro, buscar el rol "admin" en la tabla roles y asignarlo
+            // 4. Obtener el rol de admin
+            var rolAdmin = await RolService.GetAdminRoleAsync();
+            if (rolAdmin == null)
+            {
+                // Si no existe el rol admin, usar EsPropietario = true como fallback
+                ToastService.ShowWarning("Rol admin no encontrado. Se asignará como propietario.");
+            }
 
-            // 4. Crear el usuario en la tabla usuarios
+            // 5. Generar ID público del usuario
+            var idPublicoUsuario = await IdGeneratorService.GenerateIdPublicoAsync(comercioCreado.Id, "usuarios");
+
+            // 6. Crear el usuario en la tabla usuarios
             var usuario = new Usuario
             {
                 Id = Guid.NewGuid(),
                 AuthUserId = authUserId,
                 ComercioId = comercioCreado.Id,
-                RolId = null, // TODO: Asignar rol admin cuando esté implementado
+                RolId = rolAdmin?.Id,
+                Nombre = registroModel.Nombre,
+                NombreUsuario = registroModel.Usuario,
+                Contacto = registroModel.Contacto,
+                IdPublico = idPublicoUsuario,
                 Activo = true,
                 EsPropietario = true, // El usuario que se registra es propietario/admin
                 CreatedAt = DateTime.UtcNow
@@ -280,16 +398,27 @@
 
             await UsuarioService.CreateAsync(usuario);
 
-            successMessage = "¡Cuenta creada exitosamente! Redirigiendo al dashboard...";
+            // TODO: Enviar notificación por email a mo826440@gmail.com
+            // Por ahora, solo mostramos un mensaje
+            ToastService.ShowInfo("Se ha enviado una notificación al administrador para aprobar tu registro.");
+
+            successMessage = "¡Cuenta creada exitosamente! Tu registro está pendiente de aprobación. Te notificaremos cuando sea aprobado.";
             ToastService.ShowSuccess("Cuenta creada exitosamente");
 
-            // Esperar un momento y redirigir
-            await Task.Delay(1500);
-            Navigation.NavigateTo("/dashboard");
+            // Esperar un momento y redirigir al login
+            await Task.Delay(3000);
+            Navigation.NavigateTo("/login");
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Error de validación (ej: usuario duplicado)
+            errorMessage = ex.Message;
+            ToastService.ShowError(ex.Message);
         }
         catch (Exception ex)
         {
             errorMessage = $"Error al crear la cuenta: {ex.Message}";
+            ToastService.ShowError($"Error: {ex.Message}");
             Console.WriteLine($"Error en registro: {ex}");
         }
         finally

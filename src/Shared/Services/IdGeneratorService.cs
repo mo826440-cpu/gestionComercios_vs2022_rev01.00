@@ -1,4 +1,5 @@
 using Shared.Models;
+using Supabase.Postgrest.Attributes;
 
 namespace Shared.Services;
 

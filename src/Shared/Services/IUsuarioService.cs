@@ -56,5 +56,22 @@ public interface IUsuarioService
     /// <param name="rolId">ID del rol</param>
     /// <returns>Lista de usuarios con el rol especificado</returns>
     Task<List<Usuario>> GetByRolAsync(Guid comercioId, Guid rolId);
+
+    /// <summary>
+    /// Verifica si un nombre de usuario está disponible en un comercio
+    /// </summary>
+    /// <param name="comercioId">ID del comercio</param>
+    /// <param name="usuario">Nombre de usuario a verificar</param>
+    /// <param name="excludeUsuarioId">ID de usuario a excluir de la verificación (para edición)</param>
+    /// <returns>True si está disponible, False si ya está en uso</returns>
+    Task<bool> IsUsuarioDisponibleAsync(Guid comercioId, string usuario, Guid? excludeUsuarioId = null);
+
+    /// <summary>
+    /// Obtiene un usuario por su nombre de usuario y comercio
+    /// </summary>
+    /// <param name="comercioId">ID del comercio</param>
+    /// <param name="usuario">Nombre de usuario</param>
+    /// <returns>El usuario si existe, null en caso contrario</returns>
+    Task<Usuario?> GetByUsuarioAsync(Guid comercioId, string usuario);
 }
 

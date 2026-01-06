@@ -47,5 +47,12 @@ public interface IComercioService
     /// <param name="email">Email del comercio</param>
     /// <returns>El comercio si existe, null en caso contrario</returns>
     Task<Comercio?> GetByEmailAsync(string email);
+
+    /// <summary>
+    /// Obtiene un comercio por su ID público
+    /// </summary>
+    /// <param name="idPublico">ID público del comercio (formato: 01, 02, etc.)</param>
+    /// <returns>El comercio si existe, null en caso contrario</returns>
+    Task<Comercio?> GetByIdPublicoAsync(string idPublico);
 }
 
