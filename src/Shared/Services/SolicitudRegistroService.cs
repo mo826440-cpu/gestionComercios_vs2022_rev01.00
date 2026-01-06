@@ -1,6 +1,5 @@
 using Shared.Models;
 using Shared.Services;
-using Supabase.Postgrest.Models;
 
 namespace Shared.Services;
 
@@ -62,7 +61,7 @@ public class SolicitudRegistroService : ISolicitudRegistroService
             var response = await _supabaseService.Client
                 .From<SolicitudRegistro>()
                 .Where(x => x.EmailSolicitante == email.ToLowerInvariant())
-                .Order(x => x.FechaSolicitud, Ordering.Descending)
+                .Order(x => x.FechaSolicitud, Supabase.Postgrest.Models.Ordering.Descending)
                 .Limit(1)
                 .Get();
 
@@ -281,7 +280,7 @@ public class SolicitudRegistroService : ISolicitudRegistroService
             var response = await _supabaseService.Client
                 .From<SolicitudRegistro>()
                 .Where(x => x.Estado == "pendiente")
-                .Order(x => x.FechaSolicitud, Ordering.Descending)
+                .Order(x => x.FechaSolicitud, Supabase.Postgrest.Models.Ordering.Descending)
                 .Get();
 
             return response?.Models?.ToList() ?? new List<SolicitudRegistro>();
