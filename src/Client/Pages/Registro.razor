@@ -6,6 +6,8 @@
 @inject IUsuarioService UsuarioService
 @inject IRolService RolService
 @inject IIdGeneratorService IdGeneratorService
+@inject ISolicitudRegistroService SolicitudRegistroService
+@inject ISupabaseService SupabaseService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
 
@@ -47,7 +49,58 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-                        <button type="button" class="btn btn-primary" @onclick="ValidarEmail">Continuar</button>
+                        <button type="button" class="btn btn-primary" @onclick="ValidarEmail" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span>Procesando...</span>
+                            }
+                            else
+                            {
+                                <span>Continuar</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- Paso 1.5: Verificación de Código (si email no autorizado) -->
+            @if (currentStep == 1.5)
+            {
+                <div class="step-content">
+                    <h4>Verificación de Email</h4>
+                    <div class="alert alert-info">
+                        <p><strong>Email no autorizado:</strong> @registroModel.Email</p>
+                        <p>Para registrarte, necesitas un código de verificación que será enviado a tu email una vez que un administrador apruebe tu solicitud.</p>
+                        <p>Se ha enviado una solicitud de aprobación a <strong>mo826440@gmail.com</strong>.</p>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success">@successMessage</div>
+                    }
+
+                    <div class="form-group">
+                        <label for="codigoVerificacion">Código de Verificación *</label>
+                        <InputText id="codigoVerificacion" type="text" @bind-Value="codigoVerificacion" 
+                                   class="form-control" placeholder="Ingresa el código de 6 dígitos" 
+                                   maxlength="6" disabled="@isVerificando" />
+                        <small class="form-text text-muted">
+                            Ingresa el código de 6 dígitos que recibiste por email después de que tu solicitud sea aprobada.
+                        </small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="VolverAValidacionEmail">Volver</button>
+                        <button type="button" class="btn btn-primary" @onclick="VerificarCodigo" disabled="@isVerificando">
+                            @if (isVerificando)
+                            {
+                                <span>Verificando...</span>
+                            }
+                            else
+                            {
+                                <span>Verificar Código</span>
+                            }
+                        </button>
                     </div>
                 </div>
             }
@@ -159,10 +212,14 @@
     private string successMessage = string.Empty;
     private bool isLoading = false;
     private bool showPassword = false;
-    private int currentStep = 1;
+    private double currentStep = 1; // Cambiado a double para permitir paso 1.5
+    private string codigoVerificacion = string.Empty;
+    private bool isVerificando = false;
+    private bool solicitudCreada = false;
 
     // Email autorizado (temporal - se reemplazará por sistema de pago)
     private const string EMAIL_AUTORIZADO = "mo846440@gmail.com";
+    private const string ADMIN_EMAIL = "mo826440@gmail.com";
 
     private class RegistroModel
     {
@@ -242,13 +299,148 @@
 
         if (!registroModel.Email.Equals(EMAIL_AUTORIZADO, StringComparison.OrdinalIgnoreCase))
         {
-            errorMessage = $"El email {registroModel.Email} no está autorizado para registrarse. Por favor, contacta al administrador.";
+            // Email no autorizado - mostrar panel de verificación
+            isLoading = true;
             StateHasChanged();
+
+            try
+            {
+                // Verificar si ya existe una solicitud verificada para este email
+                var solicitudExistente = await SolicitudRegistroService.GetByEmailAsync(registroModel.Email);
+                
+                if (solicitudExistente != null && solicitudExistente.Estado == "verificada")
+                {
+                    // Ya está verificado, permitir continuar
+                    currentStep = 2;
+                    isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Crear o obtener solicitud
+                var solicitud = await SolicitudRegistroService.CreateAsync(registroModel.Email);
+                
+                if (solicitud != null && !solicitudCreada)
+                {
+                    // Llamar a Edge Function para enviar email al admin
+                    try
+                    {
+                        var response = await SupabaseService.Client.Functions.InvokeAsync("solicitar-registro", new
+                        {
+                            emailSolicitante = registroModel.Email
+                        });
+
+                        if (response != null)
+                        {
+                            solicitudCreada = true;
+                            successMessage = $"Se ha enviado una solicitud de aprobación a {ADMIN_EMAIL}. Una vez aprobada, recibirás un código de verificación por email.";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error al llamar Edge Function: {ex}");
+                        // Continuar aunque falle el email, la solicitud ya está creada
+                        successMessage = "Solicitud creada. Si no recibes el email de aprobación, contacta al administrador.";
+                    }
+                }
+
+                // Mostrar panel de verificación
+                currentStep = 1.5;
+                errorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error al procesar la solicitud: {ex.Message}";
+                Console.WriteLine($"Error: {ex}");
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
             return;
         }
 
         // Email válido, pasar al siguiente paso
         currentStep = 2;
+        StateHasChanged();
+    }
+
+    private async Task VerificarCodigo()
+    {
+        if (string.IsNullOrWhiteSpace(codigoVerificacion))
+        {
+            errorMessage = "Por favor, ingresa el código de verificación";
+            StateHasChanged();
+            return;
+        }
+
+        if (codigoVerificacion.Length != 6)
+        {
+            errorMessage = "El código debe tener 6 dígitos";
+            StateHasChanged();
+            return;
+        }
+
+        isVerificando = true;
+        errorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var codigoValido = await SolicitudRegistroService.VerificarCodigoAsync(registroModel.Email, codigoVerificacion);
+
+            if (codigoValido)
+            {
+                // Código correcto, marcar como verificada y continuar
+                await SolicitudRegistroService.MarcarComoVerificadaAsync(registroModel.Email);
+                ToastService.ShowSuccess("Código verificado correctamente. Puedes continuar con el registro.");
+                currentStep = 2;
+                errorMessage = string.Empty;
+                successMessage = string.Empty;
+            }
+            else
+            {
+                var solicitud = await SolicitudRegistroService.GetByEmailAsync(registroModel.Email);
+                if (solicitud != null)
+                {
+                    if (solicitud.Estado == "expirada")
+                    {
+                        errorMessage = "El código ha expirado. Por favor, solicita una nueva aprobación.";
+                    }
+                    else if (solicitud.IntentosVerificacion >= solicitud.MaxIntentos)
+                    {
+                        errorMessage = "Has excedido el número máximo de intentos. Por favor, contacta al administrador.";
+                    }
+                    else
+                    {
+                        errorMessage = $"Código incorrecto. Intentos restantes: {solicitud.MaxIntentos - solicitud.IntentosVerificacion}";
+                    }
+                }
+                else
+                {
+                    errorMessage = "Código incorrecto o solicitud no encontrada.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al verificar el código: {ex.Message}";
+            Console.WriteLine($"Error: {ex}");
+        }
+        finally
+        {
+            isVerificando = false;
+            StateHasChanged();
+        }
+    }
+
+    private void VolverAValidacionEmail()
+    {
+        currentStep = 1;
+        codigoVerificacion = string.Empty;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
         StateHasChanged();
     }
 
