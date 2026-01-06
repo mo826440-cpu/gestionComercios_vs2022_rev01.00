@@ -231,12 +231,24 @@
             var currentSession = await AuthService.GetSessionAsync();
             if (currentSession != null)
             {
+                // Login exitoso - mostrar mensaje y navegar
                 ToastService.ShowSuccess($"Bienvenido, {usuarioEnComercio.Nombre ?? usuarioEnComercio.NombreUsuario ?? "Usuario"}");
+                
+                // Limpiar el estado antes de navegar
+                isLoading = false;
+                errorMessage = string.Empty;
+                
+                // Navegar al dashboard
                 Navigation.NavigateTo("/dashboard", forceLoad: true);
+                
+                // No ejecutar el finally si el login fue exitoso
+                return;
             }
             else
             {
                 errorMessage = "Error: No se pudo establecer la sesión. Por favor, intenta nuevamente.";
+                isLoading = false;
+                StateHasChanged();
             }
         }
         catch (Exception ex)
@@ -245,9 +257,6 @@
             errorMessage = $"Error al iniciar sesión: {ex.Message}";
             ToastService.ShowError($"Error: {ex.Message}");
             Console.WriteLine($"Error de login: {ex}");
-        }
-        finally
-        {
             isLoading = false;
             StateHasChanged();
         }
