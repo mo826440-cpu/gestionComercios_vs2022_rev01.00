@@ -97,7 +97,7 @@ public class VentaService : IVentaService
             .Set(x => x.Fecha, venta.Fecha)
             .Set(x => x.Total, venta.Total)
             .Set(x => x.Descuento, venta.Descuento)
-            .Set(x => x.Observaciones, venta.Observaciones)
+            .Set(x => x.Observaciones, venta.Observaciones ?? (string?)null)
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
 

@@ -153,7 +153,8 @@
 - [ ] Preparar para: Email OTP, Biometría (futuro)
 - [ ] NO implementar aún, solo preparar estructura
 
-### 3.8 Testing
+### 3.8 Testing ✅ EN PROGRESO
+- [x] Guía de pruebas creada (`docs/22_guia_pruebas_registro_login.md`)
 - [ ] Probar registro completo
 - [ ] Probar aprobación
 - [ ] Probar login con ID de comercio

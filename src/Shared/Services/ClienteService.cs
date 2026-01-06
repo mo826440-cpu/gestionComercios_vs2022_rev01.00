@@ -53,9 +53,9 @@ public class ClienteService : IClienteService
             .From<Cliente>()
             .Where(x => x.Id == cliente.Id)
             .Set(x => x.Nombre, cliente.Nombre)
-            .Set(x => x.Email, cliente.Email)
-            .Set(x => x.Telefono, cliente.Telefono)
-            .Set(x => x.Direccion, cliente.Direccion)
+            .Set(x => x.Email, cliente.Email ?? (string?)null)
+            .Set(x => x.Telefono, cliente.Telefono ?? (string?)null)
+            .Set(x => x.Direccion, cliente.Direccion ?? (string?)null)
             .Set(x => x.Activo, cliente.Activo)
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();

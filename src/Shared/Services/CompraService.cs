@@ -96,8 +96,8 @@ public class CompraService : ICompraService
             .Set(x => x.Fecha, compra.Fecha)
             .Set(x => x.Total, compra.Total)
             .Set(x => x.Descuento, compra.Descuento)
-            .Set(x => x.NumeroFactura, compra.NumeroFactura)
-            .Set(x => x.Observaciones, compra.Observaciones)
+            .Set(x => x.NumeroFactura, compra.NumeroFactura ?? (string?)null)
+            .Set(x => x.Observaciones, compra.Observaciones ?? (string?)null)
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
 
