@@ -1,6 +1,6 @@
 using Shared.Models;
 using Shared.Services;
-using Postgrest.Models;
+using Supabase.Postgrest.Models;
 
 namespace Shared.Services;
 
