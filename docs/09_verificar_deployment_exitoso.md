@@ -107,3 +107,4 @@ Si todo funciona, ya tenés:
 - ✅ Deployment automático a Cloudflare Pages
 - ✅ App en producción
 
+

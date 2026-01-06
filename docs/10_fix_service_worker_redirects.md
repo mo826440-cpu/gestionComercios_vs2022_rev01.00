@@ -27,3 +27,4 @@ Después del deployment:
 4. Verificar que no haya errores de FetchEvent en la consola
 5. Intentar hacer login
 
+

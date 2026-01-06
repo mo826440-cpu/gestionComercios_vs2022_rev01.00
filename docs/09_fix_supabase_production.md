@@ -44,3 +44,4 @@ Después del deployment:
 2. Intentar iniciar sesión
 3. La conexión con Supabase debería funcionar
 
+

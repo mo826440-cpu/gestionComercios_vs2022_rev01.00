@@ -101,7 +101,7 @@ public class VentaService : IVentaService
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
 
-        return response.Models.FirstOrDefault() ?? venta;
+        return response?.Models?.FirstOrDefault() ?? venta;
     }
 
     public async Task DeleteAsync(Guid id)

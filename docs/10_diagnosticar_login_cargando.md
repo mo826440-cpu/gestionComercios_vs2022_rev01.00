@@ -73,3 +73,4 @@ Para ayudar mejor, necesito:
 3. **Si hay tokens en Storage** (Application tab)
 4. **Qué pasa después del login** (¿queda en blanco? ¿vuelve al login? ¿muestra algún error?)
 
+

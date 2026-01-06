@@ -60,7 +60,7 @@ public class ClienteService : IClienteService
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
 
-        return response.Models.FirstOrDefault() ?? cliente;
+        return response?.Models?.FirstOrDefault() ?? cliente;
     }
 
     public async Task DeleteAsync(Guid id)

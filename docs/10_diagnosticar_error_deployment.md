@@ -84,3 +84,4 @@ Una vez que sepas qué falló:
 - Si es un error de configuración → Te guío para corregirlo
 - Si es temporal → Esperamos y reintentamos
 
+

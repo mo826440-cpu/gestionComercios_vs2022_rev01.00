@@ -71,3 +71,4 @@ A veces puede ser un problema temporal de Cloudflare:
 3. Verificar que todos los archivos estén en el repositorio
 4. Contactar soporte si es necesario
 
+

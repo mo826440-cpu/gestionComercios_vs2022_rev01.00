@@ -60,7 +60,7 @@ public class ComercioService : IComercioService
             .Set(x => x.UpdatedAt, DateTime.UtcNow)
             .Update();
 
-        return response.Models.FirstOrDefault() ?? comercio;
+        return response?.Models?.FirstOrDefault() ?? comercio;
     }
 
     public async Task DeleteAsync(Guid id)

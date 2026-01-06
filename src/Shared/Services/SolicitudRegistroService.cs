@@ -1,5 +1,6 @@
 using Shared.Models;
 using Shared.Services;
+using Postgrest.Models;
 
 namespace Shared.Services;
 
@@ -45,7 +46,7 @@ public class SolicitudRegistroService : ISolicitudRegistroService
                 .From<SolicitudRegistro>()
                 .Insert(solicitud);
 
-            return response?.FirstOrDefault();
+            return response?.Models?.FirstOrDefault();
         }
         catch (Exception ex)
         {
@@ -61,11 +62,11 @@ public class SolicitudRegistroService : ISolicitudRegistroService
             var response = await _supabaseService.Client
                 .From<SolicitudRegistro>()
                 .Where(x => x.EmailSolicitante == email.ToLowerInvariant())
-                .Order(x => x.FechaSolicitud, Postgrest.Models.Ordering.Descending)
+                .Order(x => x.FechaSolicitud, Ordering.Descending)
                 .Limit(1)
                 .Get();
 
-            return response?.FirstOrDefault();
+            return response?.Models?.FirstOrDefault();
         }
         catch
         {
@@ -118,10 +119,17 @@ public class SolicitudRegistroService : ISolicitudRegistroService
 
             var response = await _supabaseService.Client
                 .From<SolicitudRegistro>()
-                .Update(solicitud)
-                .Match(x => x.Id);
+                .Where(x => x.Id == solicitud.Id)
+                .Set(x => x.Estado, solicitud.Estado)
+                .Set(x => x.CodigoVerificacion, solicitud.CodigoVerificacion)
+                .Set(x => x.FechaAprobacion, solicitud.FechaAprobacion)
+                .Set(x => x.FechaExpiracion, solicitud.FechaExpiracion)
+                .Set(x => x.AprobadoPor, solicitud.AprobadoPor)
+                .Set(x => x.IntentosVerificacion, solicitud.IntentosVerificacion)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                .Update();
 
-            return response?.FirstOrDefault();
+            return response?.Models?.FirstOrDefault();
         }
         catch (Exception ex)
         {
@@ -149,8 +157,11 @@ public class SolicitudRegistroService : ISolicitudRegistroService
 
             await _supabaseService.Client
                 .From<SolicitudRegistro>()
-                .Update(solicitud)
-                .Match(x => x.Id);
+                .Where(x => x.Id == solicitud.Id)
+                .Set(x => x.Estado, solicitud.Estado)
+                .Set(x => x.AprobadoPor, solicitud.AprobadoPor)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                .Update();
 
             return true;
         }
@@ -183,8 +194,10 @@ public class SolicitudRegistroService : ISolicitudRegistroService
                 solicitud.Estado = "expirada";
                 await _supabaseService.Client
                     .From<SolicitudRegistro>()
-                    .Update(solicitud)
-                    .Match(x => x.Id);
+                    .Where(x => x.Id == solicitud.Id)
+                    .Set(x => x.Estado, solicitud.Estado)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                    .Update();
                 return false;
             }
 
@@ -205,8 +218,12 @@ public class SolicitudRegistroService : ISolicitudRegistroService
                 solicitud.FechaVerificacion = DateTime.UtcNow;
                 await _supabaseService.Client
                     .From<SolicitudRegistro>()
-                    .Update(solicitud)
-                    .Match(x => x.Id);
+                    .Where(x => x.Id == solicitud.Id)
+                    .Set(x => x.Estado, solicitud.Estado)
+                    .Set(x => x.FechaVerificacion, solicitud.FechaVerificacion)
+                    .Set(x => x.IntentosVerificacion, solicitud.IntentosVerificacion)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                    .Update();
                 return true;
             }
             else
@@ -214,8 +231,10 @@ public class SolicitudRegistroService : ISolicitudRegistroService
                 // Código incorrecto, actualizar intentos
                 await _supabaseService.Client
                     .From<SolicitudRegistro>()
-                    .Update(solicitud)
-                    .Match(x => x.Id);
+                    .Where(x => x.Id == solicitud.Id)
+                    .Set(x => x.IntentosVerificacion, solicitud.IntentosVerificacion)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                    .Update();
                 return false;
             }
         }
@@ -241,8 +260,11 @@ public class SolicitudRegistroService : ISolicitudRegistroService
 
             await _supabaseService.Client
                 .From<SolicitudRegistro>()
-                .Update(solicitud)
-                .Match(x => x.Id);
+                .Where(x => x.Id == solicitud.Id)
+                .Set(x => x.Estado, solicitud.Estado)
+                .Set(x => x.FechaVerificacion, solicitud.FechaVerificacion)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow)
+                .Update();
 
             return true;
         }
@@ -259,10 +281,10 @@ public class SolicitudRegistroService : ISolicitudRegistroService
             var response = await _supabaseService.Client
                 .From<SolicitudRegistro>()
                 .Where(x => x.Estado == "pendiente")
-                .Order(x => x.FechaSolicitud, Postgrest.Models.Ordering.Descending)
+                .Order(x => x.FechaSolicitud, Ordering.Descending)
                 .Get();
 
-            return response?.ToList() ?? new List<SolicitudRegistro>();
+            return response?.Models?.ToList() ?? new List<SolicitudRegistro>();
         }
         catch
         {
