@@ -38,36 +38,83 @@ async function onActivate(event) {
 }
 
 async function onFetch(event) {
-    let cachedResponse = null;
-    if (event.request.method === 'GET') {
-        // For all navigation requests, try to serve index.html from cache,
-        // unless that request is for an offline resource.
-        // If you need some URLs to be server-rendered, edit the following check to exclude those URLs
-        const shouldServeIndexHtml = event.request.mode === 'navigate'
-            && !manifestUrlList.some(url => url === event.request.url);
-
-        const request = shouldServeIndexHtml ? 'index.html' : event.request;
-        const cache = await caches.open(cacheName);
-        cachedResponse = await cache.match(request);
+    // No interceptar peticiones a dominios externos (Supabase, APIs, etc.)
+    const url = new URL(event.request.url);
+    if (url.origin !== self.location.origin) {
+        // Para peticiones externas, hacer fetch directamente sin interceptar
+        return fetch(event.request);
     }
 
-    // Si hay una respuesta en cache, usarla
+    // Solo manejar peticiones GET del mismo origen
+    if (event.request.method !== 'GET') {
+        return fetch(event.request);
+    }
+
+    // Para peticiones de navegación, siempre intentar servir desde la red primero
+    if (event.request.mode === 'navigate') {
+        try {
+            // Intentar fetch desde la red primero
+            const networkResponse = await fetch(event.request, { 
+                redirect: 'follow',
+                cache: 'no-cache' 
+            });
+            
+            // Si es exitoso, cachear para uso offline futuro
+            if (networkResponse.ok) {
+                try {
+                    const cache = await caches.open(cacheName);
+                    await cache.put('index.html', networkResponse.clone());
+                } catch (cacheError) {
+                    console.warn('Error caching navigation response:', cacheError);
+                }
+            }
+            
+            return networkResponse;
+        } catch (error) {
+            // Si falla la red, intentar servir desde cache
+            try {
+                const cache = await caches.open(cacheName);
+                const cachedResponse = await cache.match('index.html');
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+            } catch (cacheError) {
+                console.warn('Error accessing cache:', cacheError);
+            }
+            throw error;
+        }
+    }
+
+    // Para otros recursos (JS, CSS, imágenes, etc.), usar estrategia cache-first
+    let cachedResponse = null;
+    try {
+        const cache = await caches.open(cacheName);
+        cachedResponse = await cache.match(event.request);
+    } catch (error) {
+        console.warn('Error accessing cache:', error);
+    }
+
+    // Si hay respuesta en cache, usarla
     if (cachedResponse) {
         return cachedResponse;
     }
 
-    // Si no hay cache, hacer fetch con redirect: 'follow' para manejar redirects correctamente
+    // Si no hay cache, hacer fetch desde la red
     try {
-        return await fetch(event.request, { redirect: 'follow' });
-    } catch (error) {
-        // Si el fetch falla (por ejemplo, sin conexión), intentar devolver index.html para navegación
-        if (event.request.mode === 'navigate') {
-            const cache = await caches.open(cacheName);
-            const fallback = await cache.match('index.html');
-            if (fallback) {
-                return fallback;
+        const response = await fetch(event.request, { redirect: 'follow' });
+        
+        // Cachear respuestas exitosas
+        if (response.ok) {
+            try {
+                const cache = await caches.open(cacheName);
+                await cache.put(event.request, response.clone());
+            } catch (cacheError) {
+                console.warn('Error caching response:', cacheError);
             }
         }
+        
+        return response;
+    } catch (error) {
         throw error;
     }
 }
