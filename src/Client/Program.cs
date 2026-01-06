@@ -27,6 +27,10 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<ICompraService, CompraService>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IRolService, RolService>();
+
+// Configurar servicios de utilidad
+builder.Services.AddScoped<IIdGeneratorService, IdGeneratorService>();
 
 // Configurar servicios de negocio
 builder.Services.AddScoped<ISyncService, SyncService>();
